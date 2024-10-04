@@ -93,13 +93,7 @@ userRouter.post('/signup',signupUserMiddleware,async (c)=>{
     const body = await c.req.json();
 
     const user = await prisma.users.create({
-        data: {
-          firstName:body.firstName,
-          lastName: body.lastName,
-          mobileNo: body.mobileNo,
-          email: body.email,
-          password: body.password
-        }
+        data: body
       });
 
       const token = await sign({userId:user.userId}, c.env?.JWT_SECRET);
