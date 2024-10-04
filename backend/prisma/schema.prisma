@@ -14,7 +14,42 @@ datasource db {
   directUrl= env("DIRECT_URL")
 }
 
-model Log{
-  id Int @id @default(autoincrement())
-  name String
+model Users {
+  userId      String     @id @default(uuid()) // Primary Key
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deletedAt   DateTime?  // Optional field for soft deletion
+  firstName   String
+  lastName    String?    // Optional
+  mobileNo    String?    // Optional
+  email       String     @unique 
+  password    String
+  Expenses    Expenses[]  // Changed from Accounts to Expenses
+}
+
+model Expenses {
+  expenseId   String     @id @default(uuid()) // Primary Key
+  createdAt   DateTime   @default(now())                
+  updatedAt   DateTime   @updatedAt                      // Automatically updated timestamp
+  deletedAt   DateTime?                                   
+  userId      String                                       // Foreign Key referencing Users
+  amount      Float                                         // Amount in the expense
+  categoryId  String                                       // Category ID
+  description String?                                     // Optional description
+  currency     String                                      // Currency type (e.g., 'USD')
+  time        DateTime                                     
+
+  // Define the relation to the Users model
+  user        Users      @relation(fields: [userId], references: [userId])
+  category    Categories  @relation(fields: [categoryId], references: [categoryId])
+}
+
+model Categories {
+  categoryId  String     @id @default(uuid()) // Primary Key
+  createdAt   DateTime   @default(now())                // Automatically set to current timestamp
+  updatedAt   DateTime   @updatedAt                      // Automatically updated timestamp
+  deletedAt   DateTime?                                   // Optional field for soft deletion
+  description String                                       // Description of the category
+  imgLink     String?                                     // Optional image link for the category
+  Expenses    Expenses[]                                  // Changed from Accounts to Expenses
 }
