@@ -2,8 +2,7 @@ import { Hono} from 'hono';
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from '@prisma/extension-accelerate';
 import { sign } from 'hono/jwt';
-import {userUpdateSchema,userSigninSchema,userSignupSchema} from '@tanmayaswal/wallet'
-import { signinUserMiddleware, signupUserMiddleware, updateUserMiddleware } from '../middleware/userMiddleware';
+import { signinUserMiddleware, signupUserMiddleware, updateUserMiddleware, userMiddleware } from '../middleware/userMiddleware';
 
 export const userRouter=new Hono<{
     Bindings:{
@@ -22,6 +21,23 @@ export const userRouter=new Hono<{
 //  2./signin
 // 	3./update
 //  4./
+userRouter.get('/',userMiddleware,async (c)=>{
+    const prisma= new PrismaClient({
+      datasourceUrl:c.env?.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    const user= await prisma.users.findFirst({
+      where:{
+        userId:c.get('userId')
+      }
+    })
+
+    if(!user){
+      return c.json({error:"Unauthorized!"},401);
+    }
+
+    return c.json(user,200);
+});
 
 userRouter.put('/update',updateUserMiddleware,async (c)=>{
   const prisma= new PrismaClient({
@@ -42,7 +58,7 @@ userRouter.put('/update',updateUserMiddleware,async (c)=>{
   }
 
   return c.json({message:"User details updated"},200);
-})
+});
 
 userRouter.post('/signin',signinUserMiddleware,async(c)=>{
     const prisma = new PrismaClient({
@@ -67,7 +83,7 @@ userRouter.post('/signin',signinUserMiddleware,async(c)=>{
 
     const token = await sign({userId:user.userId}, c.env?.JWT_SECRET);
     return c.json({token},200);
-})
+});
 
 userRouter.post('/signup',signupUserMiddleware,async (c)=>{
     const prisma = new PrismaClient({
@@ -88,4 +104,4 @@ userRouter.post('/signup',signupUserMiddleware,async (c)=>{
 
       const token = await sign({userId:user.userId}, c.env?.JWT_SECRET);
       return c.json({token});
-})
+});

@@ -1,5 +1,5 @@
 import {userUpdateSchema,userSigninSchema,userSignupSchema} from '@tanmayaswal/wallet'
-import { decode, verify } from 'hono/jwt';
+import { verify } from 'hono/jwt';
 
 export const updateUserMiddleware = async (c: any, next: any) => {
     try {
@@ -51,6 +51,29 @@ export const updateUserMiddleware = async (c: any, next: any) => {
     }
 };
 
+export const userMiddleware= async (c:any,next:any)=>{
+    try{
+
+        const header = c.req.header('authorization');
+
+        if (!header || !header.startsWith("Bearer ")) {
+            return c.json({ error: "Unauthorized, token missing" }, 401);
+        }
+
+        const token = header.split(" ")[1];
+
+        const payload = await verify(token, c.env.JWT_SECRET);
+
+        c.set('userId',payload.userId);
+        c.set('token',token);
+
+        await next();
+
+    }catch (err) {
+        // Handle token verification errors or other issues
+        return c.json({ error: "Unauthorized, invalid token" }, 401);
+    }
+}
 
 export const signupUserMiddleware= async (c:any, next:any)=>{
     const body = await c.req.json();
