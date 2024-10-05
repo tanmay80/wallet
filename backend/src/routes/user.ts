@@ -26,17 +26,27 @@ userRouter.get('/',userMiddleware,async (c)=>{
       datasourceUrl:c.env?.DATABASE_URL,
     }).$extends(withAccelerate());
 
-    const user= await prisma.users.findFirst({
-      where:{
-        userId:c.get('userId')
+    try{
+      const user= await prisma.users.findFirst({
+        where:{
+          userId:c.get('userId')
+        }
+      })
+
+      if(!user){
+        return c.json({error:"Unauthorized!"},401);
       }
-    })
 
-    if(!user){
-      return c.json({error:"Unauthorized!"},401);
+      return c.json(user,200);
+
+    }catch(err:any){
+      return c.json({ error: "Database query failed", details: err.message }, 500);
     }
+    
 
-    return c.json(user,200);
+    
+
+    
 });
 
 userRouter.put('/update',updateUserMiddleware,async (c)=>{
@@ -46,18 +56,23 @@ userRouter.put('/update',updateUserMiddleware,async (c)=>{
 
   const updateData = c.get('updateData');
 
-  const post= await prisma.users.update({
+  try{
+    const post= await prisma.users.update({
       where:{
         userId:c.get('userId'),
       },
       data:updateData,
     })
 
-  if(!post){
-      return c.json({error:"Error while updating the field"},404);
-  }
+    if(!post){
+        return c.json({error:"Error while updating the field"},404);
+    }
 
-  return c.json({message:"User details updated"},200);
+    return c.json({message:"User details updated"},200);
+  }catch(err:any){
+    return c.json({ error: "Database update failed", details: err.message }, 500);
+  }
+  
 });
 
 userRouter.post('/signin',signinUserMiddleware,async(c)=>{
@@ -67,22 +82,27 @@ userRouter.post('/signin',signinUserMiddleware,async(c)=>{
 
     const body = await c.req.json();
 
-    const user=await prisma.users.findFirst({
+    try{
+      const user=await prisma.users.findFirst({
         where:{
           email:body.email,
         }
       });
 
-    if(!user){
-        return c.json({error:"No user found!"},404);
-    }
+      if(!user){
+          return c.json({error:"No user found!"},404);
+      }
 
-    if(user.password!=body.password){
-        return c.json({error:"Wrong password!"},404);
-    }
+      if(user.password!=body.password){
+          return c.json({error:"Wrong password!"},404);
+      }
 
-    const token = await sign({userId:user.userId}, c.env?.JWT_SECRET);
-    return c.json({token},200);
+      const token = await sign({userId:user.userId}, c.env?.JWT_SECRET);
+      return c.json({token},200);
+    }catch(err:any){
+      return c.json({ error: "Database update failed", details: err.message }, 500);
+    }
+    
 });
 
 userRouter.post('/signup',signupUserMiddleware,async (c)=>{
@@ -92,10 +112,16 @@ userRouter.post('/signup',signupUserMiddleware,async (c)=>{
 
     const body = await c.req.json();
 
-    const user = await prisma.users.create({
+    try{
+      const user = await prisma.users.create({
         data: body
       });
 
       const token = await sign({userId:user.userId}, c.env?.JWT_SECRET);
       return c.json({token});
+    }catch(err:any){
+      return c.json({ error: "User creation failed", details: err.message }, 500);
+    }
+
+    
 });
