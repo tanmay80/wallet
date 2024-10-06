@@ -62,6 +62,25 @@ categoryRouter.get('/:categoryId',async (c)=>{
     }
 });
 
+categoryRouter.get('/bulk',async (c)=>{
+    const prisma= new PrismaClient({
+        datasourceUrl:c.env?.DATABASE_URL,
+      }).$extends(withAccelerate());
+
+      try{
+        const category= await prisma.categories.findMany({});
+
+        if(category.length===0){
+            return c.json({error:"No category found"},404);
+        }
+
+        return c.json({message:"Categories  found!",category},200);
+
+    }catch(err:any){
+        return c.json({ error: "Failed to fetch categories ", details: err.message }, 500);
+    }
+})
+
 categoryRouter.put('/update',async (c)=>{
     const prisma= new PrismaClient({
         datasourceUrl:c.env?.DATABASE_URL,

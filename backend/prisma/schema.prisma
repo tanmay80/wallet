@@ -49,7 +49,7 @@ model Categories {
   createdAt   DateTime   @default(now())                // Automatically set to current timestamp
   updatedAt   DateTime   @updatedAt                      // Automatically updated timestamp
   deletedAt   DateTime?                                   // Optional field for soft deletion
-  description String                                       // Description of the category
+  name String                                       // Description of the category
   imgLink     String?                                     // Optional image link for the category
   Expenses    Expenses[]                                  // Changed from Accounts to Expenses
 }

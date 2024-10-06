@@ -1,5 +1,20 @@
 import { z } from 'zod';
 
+export const expenseAddSchema = z.object({
+  amount: z.number().positive().min(1,"Amount can't be zero"),
+  categoryId: z.string(),
+  description: z.string().optional().nullable(),
+  currency: z.string(),
+  time: z.date()
+});
+
+export const expenseUpdateSchema = z.object({
+  amount: z.number().positive().min(1,"Amount can't be zero").optional(),
+  categoryId: z.string().optional(),
+  description: z.string().optional().nullable(),
+  time: z.date().optional()
+});
+
 export const userUpdateSchema = z.object({
   firstName: z.string().min(1, "First name cannot be empty").optional(),
   lastName: z.string().min(1, "First name cannot be empty").optional(),
@@ -24,3 +39,9 @@ export const userSignupSchema = z.object({
 export type UserUpdateSchema= z.infer<typeof userUpdateSchema>; 
 export type UserSigninSchema= z.infer<typeof userSigninSchema>;
 export type UserSignupSchema= z.infer<typeof userSignupSchema>;
+
+//expense type
+
+export type ExpenseAddSchema= z.infer<typeof expenseAddSchema>
+
+export type ExpenseUpdateSchema= z.infer<typeof expenseUpdateSchema>
